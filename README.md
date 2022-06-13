@@ -1,4 +1,8 @@
 # PID-ballonplate
+
+![the complete assembly](https://github.com/nicohmje/PID-ballonplate/blob/complete_assembly.jpg?raw=true)
+
+
 A simple-ish project using a Raspberry Pi and three servos. 
 
 ## Principle behind the project: 
