@@ -4,20 +4,24 @@ import time
 import tkinter as tk
 from adafruit_servokit import ServoKit
 
+#Initialize the three servos
 kit = ServoKit(channels = 16)
 kit.servo[0].set_pulse_width_range(500, 2500) #Very important
 kit.servo[1].set_pulse_width_range(500, 2500) #Very important
 kit.servo[2].set_pulse_width_range(500, 2500) #Very important
 
+#Center coordinates
 center_x = 250
 center_y = 250  
 
 prevX = 0
 prevY = 0 
 
+#Min and max angles of each motor
 min_motor = np.array([85,85,77])
 max_motor = np.array([175,175,165])
 
+#Sets the angle of the motors to the chosen values
 def set_angle():
     global initial_angle
     initial_angle[0] = e0.get()
@@ -25,15 +29,18 @@ def set_angle():
     initial_angle[2] = e2.get()
     initialPos()
 
-initial_angle = np.array([124,120,111])
+initial_angle = np.array([124,120,111]) #These depend on how level the surface is
 
+#Initial position of the motors
 def initialPos():
     kit.servo[0].angle = int(e0.get())
-    kit.servo[1].angle = int(e1.get())+40
+    kit.servo[1].angle = int(e1.get())
     kit.servo[2].angle = int(e2.get())
 
+#Initialize the capture 
 cap = cv.VideoCapture(0)
 
+#Moves the motor according to the instructions given by the PID
 def move_motors(pid):
     for i in np.arange(0,3,1):
         angle = initial_angle[i] - (pid[i]/150.0 * 20)
@@ -46,7 +53,7 @@ def move_motors(pid):
             angle = min_motor[i]
         kit.servo[i].angle = angle 
 
-
+#Finds the ball's center
 def ballFinder():
     ret, frame = cap.read()
     result = (0,0)
@@ -56,22 +63,22 @@ def ballFinder():
         lower_value = np.array([00,80,100])
         higher_value = np.array([50,255,255])
         mask = cv.inRange(hsv, lower_value, higher_value)
-        mask = cv.blur(mask,(6,6))                        # ajoute du flou à l'image
-        mask = cv.erode(mask, None, iterations=2)         # retire les parasites
-        mask = cv.dilate(mask, None, iterations=2)        # retire les parasites
+        mask = cv.blur(mask,(6,6))                        
+        mask = cv.erode(mask, None, iterations=2)         
+        mask = cv.dilate(mask, None, iterations=2)        
         contours, _ = cv.findContours(mask, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
         for cnt in contours:
             area = cv.contourArea(cnt)
             if area > 1500:
                 (x,y), radius = cv.minEnclosingCircle(cnt)
                 x = int(x)
-                y = 480 - int(y)
+                y = 480 - int(y) #In images, y=0 is on top, not on the bottom 
                 radius = int(radius)
                 if radius > 20:
                     result = (x,y)
     return(result)
 
-
+#This allows you to properly place the plate beneath the camera
 def CenterCalibration():
     for i in np.arange(0,150):
         ret, frame = cap.read()
@@ -85,6 +92,7 @@ def CenterCalibration():
            
         
 started = False
+#GUI and looping
 def start_program():
     global started,i
     set_values()
@@ -98,6 +106,7 @@ def start_program():
 
 errors = np.zeros(3)
 pasterrors = np.zeros(3)
+#Calculates the error for each line of action of each servo
 def get_errors(x,y):
     global center_x, center_y, errors, pasterrors
     print(center_x, center_y)
@@ -114,6 +123,7 @@ lastlastderivative = 0
 integral = 0
 derivative = 0 
 pid = 0
+#Calculates the PID and normalizes it based on computation time 
 def pid_control(compT):
     global errors, pasterrors
     global lastderivative, lastlastderivative, derivative
@@ -141,17 +151,8 @@ def pid_control(compT):
         Kd_normalized = Kd_normalized * 1.1
     if np.all(np.abs(derivative) < 0.5):
         Kd_normalized = 0
-
-
-
-    #derivative = (errors - pasterrors)**2 * ((errors - pasterrors)/abs((errors - pasterrors)))/35.0
-    #print("newderivative",(errors - pasterrors)**2 * ((errors - pasterrors)/abs((errors - pasterrors)))/35)
-    #print("derivative", derivative)
-    #print(Kd[0], Kd_normalized[0])
-    #print(Ka[0], Ka_normalized[0])
     lastpid = pid
     pid = Kp_normalized * errors + Ki * integral  + Kd_normalized * (((5*derivative) + (3*lastderivative) + (2*lastlastderivative))/10.0) + Ka_normalized * (((derivative - lastderivative) + (lastderivative - lastlastderivative))/2.0) 
-    #print("PID", abs(pid - lastpid))
     return pid 
 
 
@@ -160,7 +161,7 @@ Kd = np.zeros(3)
 Ka = np.zeros(3)
 Ki = np.zeros(3)
 
-
+#Resets the values, if the ball leaves the plate
 def reset_values():
     global derivative, lastderivative, lastlastderivative, i
     global pasterrors, errors, pid
@@ -171,6 +172,7 @@ def reset_values():
     i = 0
     print('successfully reset all values')
 
+#sets the coefficients 
 def set_values():
     global Kp, Ki, Kd, Ka
     i = int(motor_selector.get())
@@ -187,6 +189,7 @@ def set_values():
     print(Kp, Ki, Kd, Ka)
 
 t = 0 
+#Refreshes the 'ball position' graph
 def refresh(x, y):
     global t
     graphWindow.deiconify()
@@ -202,13 +205,14 @@ def refresh(x, y):
     t += 4
 
 computation_time = []
+#Main loop
 def main():
     global prevX, prevY, computation_time
     global center_x, center_y
     start_time = time.time()
     if started:
         x, y = ballFinder()
-        print("posiiton", x,y)
+        #print("posiiton", x,y)
         if x != y != 0: 
             detected = True
             get_errors(x,y)
@@ -226,6 +230,8 @@ def main():
         refresh(x, y)
     lmain.after(1,main)
 
+    
+#GUI PART 
 
 window = tk.Tk()
 window.geometry("820x500")
@@ -243,15 +249,11 @@ d_slider.pack()
 a_slider = tk.Scale(window,  from_=0, to=10, orient="horizontal", label="Double Derivative", length=500, tickinterval=10, resolution=0.1)
 a_slider.set(5.6)
 a_slider.pack()
-interv_slider = tk.Scale(window,  from_=1, to=100, orient="horizontal", label="Interval", length=500, tickinterval=10, resolution=1)
-interv_slider.set(40)
-interv_slider.pack()
 
 p_slider.place(x=250, y= 0)
 i_slider.place(x=250, y= 100)
 d_slider.place(x=250, y= 200)
 a_slider.place(x=250, y= 300)
-interv_slider.place(x=250, y = 400)
 
 tk.Label(window, text="Motor0").place(x=00,y=20)
 tk.Label(window, text="Motor1").place(x=00,y=50)
@@ -296,6 +298,9 @@ Breset.place(x=20, y= 250)
 set = tk.Button(window, text='set values', command=set_values)
 set.place(x=400, y = 350 )
     
+#END OF GUI
+
+#Final order of operations : 
 initialPos()
 CenterCalibration()
 cv.destroyAllWindows()
