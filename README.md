@@ -7,7 +7,7 @@ A simple-ish project using a Raspberry Pi and three servos.
 
 ## Principle behind the project: 
 
-1. A Pi camera tracks the position of the ball, using OpenCV. A mask is first applied separating the orange color of the ball from the rest. THe mask is then eroded twice, blurred, and finally a 'smallest enclosing circle' command returns the radius and the center position.
+1. A Pi camera tracks the position of the ball, using OpenCV. A mask is first applied separating the orange color of the ball from the rest. The mask is then eroded twice, blurred, and finally a 'smallest enclosing circle' command returns the radius and the center position.
 
 2. This information is then filtered by radius. If it is part of the range of radii that the ball is expected to have, the program calculates the error between the position of the ball and the center of the plate. Three errors total are calculated, one for each servos' line of action.
 
