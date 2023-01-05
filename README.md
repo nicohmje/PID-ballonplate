@@ -1,8 +1,8 @@
-# PID-ballonplate
+# Using a PID algo and Computer Vision to stabilize a ping-pong ball on a moving plane
 
 ![the complete assembly](https://github.com/nicohmje/PID-ballonplate/blob/main/Complete_assembly.jpg?raw=true)
 
-A simple-ish project using a Raspberry Pi and three servos. 
+A relatively straightforward project using a Raspberry Pi, three servos and a 3D printed structure.
 
 [SEE IT IN ACTION!](https://www.reddit.com/r/3Dprinting/comments/vbh1qf/3d_printed_all_the_parts_almost_for_this_fun/)
 
