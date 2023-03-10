@@ -38,5 +38,7 @@ Part selection really doesn't matter that much apart from the RPi and the PiCame
 
 Great idea! If you need any help, feel free to shoot me a message on reddit (/u/parisiancyclist) or Instagram (@nicohmje). You can also directly contact me through GitHub. 
 
+The STL Files folder includes the necessary parts for this project. These should be adapted to your parts and specific setup, and should only serve as a reference. The 3MF Files folder includes the prototypes too, if you want a deeper, in-depth look at the projects evolution.
+
 Happy building!
 
